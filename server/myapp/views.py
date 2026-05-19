@@ -8,12 +8,13 @@ import io
 import cv2
 from decouple import config  
 import os
-
+os.environ.setdefault("TF_ENABLE_ONEDNN_OPTS", "0")
 
 IMAGE_SIZE = 224
 CLASS_NAMES = ['Crack', 'Pothole', 'Surface Erosion']
 
-MODEL_PATH = config("MODEL_PATH")
+# MODEL_PATH = config("MODEL_PATH")
+MODEL_PATH = r"E:\Python\Research\2_Road Damage\pothole_detection_CNN\Model\Trained Modelv2\Modelv1.o\MOBILENETv1.o.h5"
 model = tf.keras.models.load_model(MODEL_PATH)
 
 def get_lighting_condition(img_array):
@@ -32,7 +33,7 @@ def get_lighting_condition(img_array):
 
     return lighting, round(brightness, 2)
 
-from tensorflow.keras.applications.vgg19 import preprocess_input
+#from tensorflow.keras.applications.vgg19 import preprocess_input
 
 def predict_image(model, img):
     img = img.resize((IMAGE_SIZE, IMAGE_SIZE))

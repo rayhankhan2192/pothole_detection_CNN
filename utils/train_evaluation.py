@@ -174,7 +174,7 @@ class Trainer:
         plt.tight_layout()
         # Save before show so the file isn't empty
         plt.savefig(os.path.join(self.base_dir, 'training_curves.png'))
-        plt.show()
+        #plt.show()
         plt.close()
 
     def save_confusion_matrix(self, cm, filename='confusion_matrix.png', prefix=''):

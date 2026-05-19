@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
-class CustomVGG19(nn.Module):
+class VGG19(nn.Module):
     def __init__(self, num_classes: int = 3):
-        super(CustomVGG19, self).__init__()
+        super(VGG19, self).__init__()
         
         # Load pre-trained VGG19 (weights='imagenet')
         self.base_model = models.vgg19(weights=models.VGG19_Weights.IMAGENET1K_V1)

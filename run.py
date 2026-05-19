@@ -111,3 +111,7 @@ def parse_args():
 
 if __name__ == "__main__":
     main()
+    
+    
+
+# python run.py --data-dir "path/to/road_dataset" --model-name customcnn --epochs 30

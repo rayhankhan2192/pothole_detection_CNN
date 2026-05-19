@@ -10,6 +10,8 @@ opencv-python
 ultralytics
 openai
 ollama
+albumentations
+seaborn
 
 django
 djangorestframework

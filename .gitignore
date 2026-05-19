@@ -13,3 +13,7 @@ Garbage Code/
 DatasetV1.o/
 Datasetspt/
 DatasetV12/
+Result/
+
+*.pyc
+__pycache__/
