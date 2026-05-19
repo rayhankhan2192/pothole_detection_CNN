@@ -184,3 +184,51 @@ def save_augmentation_samples(train_loader, save_dir, num_samples=10):
             filename = f"sample_{i}_{class_name}.jpg"
             save_path = os.path.join(save_dir, 'aug_samples', mode_name, filename)
             cv2.imwrite(save_path, save_img)
+            
+def create_data_loaders(
+    data_dir: str, 
+    batch_size: int = 32, 
+    aug_type: str = 'none', 
+    class_names: Optional[List[str]] = None, 
+    image_size: Tuple[int, int] = (224, 224)
+):
+    # Scan disk ONLY ONCE
+    full_ds = RoadDamageDataset(data_dir, subset='full', class_names=class_names, image_size=image_size)
+    
+    # 80% Train, 20% Temp (Val/Test)
+    train_idx, temp_idx = train_test_split(
+        range(len(full_ds)), 
+        train_size=0.8, 
+        stratify=full_ds.targets, 
+        random_state=42
+    )
+    
+    # Split Temp into 50% Val, 50% Test (10% of total each)
+    val_idx, test_idx = train_test_split(
+        temp_idx, 
+        train_size=0.5, 
+        stratify=[full_ds.targets[i] for i in temp_idx],
+        random_state=42
+    )
+
+    def build_subset(indices, subset_name):
+        # Use the requested aug_type for training, otherwise use 'val' for Val/Test
+        mode = aug_type if subset_name == 'train' else 'val'
+        
+        ds = RoadDamageDataset(
+            data_dir, 
+            transform=get_image_transforms(image_size, mode), 
+            subset=subset_name, 
+            class_names=full_ds.class_names
+        )
+        ds.samples = [full_ds.samples[i] for i in indices]
+        ds.targets = [s[1] for s in ds.samples]
+        ds.log_summary()
+        
+        return DataLoader(ds, batch_size=batch_size, shuffle=(subset_name == 'train'))
+
+    train_loader = build_subset(train_idx, 'train')
+    val_loader = build_subset(val_idx, 'val')
+    test_loader = build_subset(test_idx, 'test')
+
+    return train_loader, val_loader, test_loader, full_ds.class_weights
