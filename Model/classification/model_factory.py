@@ -4,6 +4,8 @@ import torch.nn.functional as F
 import logging
 
 from Model.classification.customcnn import CustomCNN
+from Model.classification.efficientnet import EfficientNetB0
+from Model.classification.mobileNetV2 import CustomMobileNetV2
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -12,11 +14,22 @@ def get_model(model_name: str, num_classes: int = 3, **kwargs):
     """
     Factory function to return the specified model.
     """
-    if model_name.lower() == 'customcnn':
+    model_name = model_name.lower()
+    
+    if model_name == 'customcnn':
         logger.info(f"Initializing CustomCNN with {num_classes} classes.")
         return CustomCNN(num_classes=num_classes)
+        
+    elif model_name == 'efficientnet':
+        logger.info(f"Initializing Frozen EfficientNetB0 with {num_classes} classes.")
+        return EfficientNetB0(num_classes=num_classes)
+        
+    elif model_name == 'mobilenetv2':
+        logger.info(f"Initializing CustomMobileNetV2 with {num_classes} classes.")
+        return CustomMobileNetV2(num_classes=num_classes)
+        
     else:
-        raise ValueError(f"Model '{model_name}' is not supported. Please use 'customcnn'.")
+        raise ValueError(f"Model '{model_name}' is not supported. Use 'customcnn', 'efficientnet', or 'mobilenetv2'.")
     
 class FocalLoss(nn.Module):
     """
