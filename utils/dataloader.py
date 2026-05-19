@@ -91,3 +91,96 @@ class RoadDamageDataset(Dataset):
             image = self.transform(image=image)['image']
             
         return image, label
+    
+def get_image_transforms(image_size: Tuple[int, int], mode: str):
+    """
+    Modes of augmentation:
+    1. 'none': No augmentation, just resizing and normalization.
+    2. 'standard': General geometric and color augmentations.
+    3. 'enhanced': CLAHE + Sharpening + General augmentations.
+    4. 'val': Strict resizing and normalization for validation/testing.
+    """
+
+    base_norm = [
+        A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
+        ToTensorV2()
+    ]
+
+    if mode == 'none' or mode == 'val':
+        return A.Compose([
+            A.Resize(image_size[0], image_size[1]),
+            *base_norm
+        ])
+
+    elif mode == 'standard':
+        return A.Compose([
+            A.Resize(image_size[0], image_size[1]),
+            A.Rotate(limit=15, p=0.7),
+            A.HorizontalFlip(p=0.5),
+            A.RandomBrightnessContrast(p=0.2),
+            *base_norm
+        ])
+        
+    elif mode == 'enhanced':
+        return A.Compose([
+            A.Resize(image_size[0], image_size[1]),
+            # CLAHE: clip_limit 2.0, tile_grid 8x8
+            A.CLAHE(clip_limit=2.0, tile_grid_size=(8, 8), p=1.0),
+            # Unsharp Masking via Sharpen: alpha 1.0 matches weight amount
+            A.Sharpen(alpha=(1.0, 1.0), lightness=(1.0, 1.0), p=1.0),
+            # Followed by standard training augmentations
+            A.Rotate(limit=15, p=0.7),
+            A.HorizontalFlip(p=0.5),
+            A.RandomBrightnessContrast(p=0.2),
+            *base_norm
+        ])
+        
+    # Default fallback
+    return A.Compose([A.Resize(image_size[0], image_size[1]), *base_norm])
+
+def save_augmentation_samples(train_loader, save_dir, num_samples=10):
+    if num_samples <= 0:
+        return
+    
+    # Define pipelines WITHOUT Normalization for visualization
+    pipes = {
+        "none": A.Compose([A.Resize(224, 224)]),
+        "standard": A.Compose([
+            A.Resize(224, 224),
+            A.Rotate(limit=15, p=1.0), # Force rotation for sample view
+            A.HorizontalFlip(p=1.0),
+            A.RandomBrightnessContrast(p=0.5)
+        ]),
+        "enhanced": A.Compose([
+            A.Resize(224, 224),
+            A.CLAHE(clip_limit=2.0, tile_grid_size=(8, 8), p=1.0),
+            A.Sharpen(alpha=(1.0, 1.0), lightness=(1.0, 1.0), p=1.0),
+            A.Rotate(limit=15, p=1.0)
+        ])
+    }
+
+    # Create subdirectories for each type
+    for mode_name in pipes.keys():
+        path = os.path.join(save_dir, 'aug_samples', mode_name)
+        os.makedirs(path, exist_ok=True)
+
+    print(f"INFO: Saving {num_samples} samples per augmentation type to {save_dir}/aug_samples/")
+
+    dataset = train_loader.dataset
+    # We use a small loop to save individual images
+    for i in range(min(num_samples, len(dataset))):
+        img_path, label_idx = dataset.samples[i]
+        class_name = dataset.class_names[label_idx]
+        
+        # Load the raw image
+        image = cv2.imread(img_path)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        for mode_name, pipe in pipes.items():
+            transformed = pipe(image=image)['image']
+            
+            # Save the image (convert back to BGR for OpenCV save)
+            save_img = cv2.cvtColor(transformed, cv2.COLOR_RGB2BGR)
+            filename = f"sample_{i}_{class_name}.jpg"
+            save_path = os.path.join(save_dir, 'aug_samples', mode_name, filename)
+            cv2.imwrite(save_path, save_img)
