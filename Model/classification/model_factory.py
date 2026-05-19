@@ -6,6 +6,8 @@ import logging
 from Model.classification.customcnn import CustomCNN
 from Model.classification.efficientnet import EfficientNetB0
 from Model.classification.mobileNetV2 import CustomMobileNetV2
+from Model.classification.resNet50 import ResNet50
+from Model.classification.vgg19 import VGG19
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,6 +29,12 @@ def get_model(model_name: str, num_classes: int = 3, **kwargs):
     elif model_name == 'mobilenetv2':
         logger.info(f"Initializing CustomMobileNetV2 with {num_classes} classes.")
         return CustomMobileNetV2(num_classes=num_classes)
+    elif model_name == 'resnet50':
+        logger.info(f"Initializing Frozen ResNet50 with {num_classes} classes.")
+        return ResNet50(num_classes=num_classes)
+    elif model_name == 'vgg19':
+        logger.info(f"Initializing Frozen VGG19 with {num_classes} classes.")
+        return VGG19(num_classes=num_classes)
         
     else:
         raise ValueError(f"Model '{model_name}' is not supported. Use 'customcnn', 'efficientnet', or 'mobilenetv2'.")
