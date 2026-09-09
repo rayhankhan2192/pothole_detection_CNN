@@ -7,6 +7,9 @@ torch
 pandas
 scikit-learn
 opencv-python
+ultralytics
+openai
+ollama
 
 django
 djangorestframework

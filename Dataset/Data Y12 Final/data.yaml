@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 3
+names: ['Crack', 'Pothole', 'Surface Erosion']
+
+roboflow:
+  workspace: rayhan-workspace
+  project: road-damage-detection-l2p2a
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/rayhan-workspace/road-damage-detection-l2p2a/dataset/1
